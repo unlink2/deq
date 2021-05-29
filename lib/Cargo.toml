@@ -5,6 +5,7 @@ authors = ["Lukas Krickl <lukas@krickl.dev>"]
 description = "Deq - A simple rust transaction system that allows reverting any changes made to a struct"
 license = "MIT"
 homepage = "https://github.com/unlink2/deq"
+readme = "../README.md"
 
 [lib]
 name = "deq"
