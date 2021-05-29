@@ -20,7 +20,7 @@ Add this to your `Cargo.toml`
 deq = "0.1.0"
 ```
 
-To get started see [The Example](https://github.com/unlink2/deq).
+To get started see [The Example](example/src/main.rs).
 
 ## Maintainers
 
