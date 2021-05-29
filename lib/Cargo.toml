@@ -1,0 +1,12 @@
+[package]
+name = "deq"
+version = "0.1.0"
+authors = ["Lukas Krickl <lukas@krickl.dev>"]
+
+[lib]
+name = "deq"
+path = "src/lib.rs"
+
+[dependencies]
+deq_macros = {path = "../macros"}
+deq_core = {path = "../core"}

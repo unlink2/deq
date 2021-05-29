@@ -1,0 +1,10 @@
+[package]
+name = "deq_core"
+version = "0.1.0"
+authors = ["Lukas Krickl <lukas@krickl.dev>"]
+
+[lib]
+name = "deq_core"
+path = "src/lib.rs"
+
+[dependencies]
