@@ -2,6 +2,9 @@
 name = "deq_macros"
 version = "0.1.0"
 authors = ["Lukas Krickl <lukas@krickl.dev>"]
+description = "Deq macros"
+license = "MIT"
+homepage = "https://github.com/unlink2/deq"
 
 [lib]
 name = "deq_macros"
