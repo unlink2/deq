@@ -8,5 +8,5 @@ name = "deq"
 path = "src/lib.rs"
 
 [dependencies]
-deq_macros = {path = "../macros"}
-deq_core = {path = "../core"}
+deq_macros = {path = "../macros", version = "0.1.0"}
+deq_core = {path = "../core", version = "0.1.0"}
