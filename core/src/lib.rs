@@ -1,4 +1,5 @@
 use std::fmt;
+use std::cmp::Ordering;
 
 /// Transaction trait
 pub trait Transaction: Clone {
@@ -25,6 +26,34 @@ impl<T> TransactionData<T> {
         Self {
             t: vec![]
         }
+    }
+}
+
+impl<T> PartialEq<TransactionData<T>> for TransactionData<T>
+where T: PartialEq<T> {
+    fn eq(&self, other: &TransactionData<T>) -> bool {
+        return self.t == other.t;
+    }
+
+    fn ne(&self, other: &TransactionData<T>) -> bool {
+        return self.t != other.t;
+    }
+}
+
+impl<T> Eq for TransactionData<T>
+where T: Eq {}
+
+impl<T> PartialOrd for TransactionData<T>
+where T: PartialOrd {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.t.partial_cmp(&other.t)
+    }
+}
+
+impl<T> Ord for TransactionData<T>
+where T: Ord {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.t.cmp(&other.t)
     }
 }
 

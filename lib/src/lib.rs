@@ -10,7 +10,7 @@ mod tests {
     use super::*;
 
     #[transaction_fields]
-    #[derive(Clone, Transaction)]
+    #[derive(Clone, Transaction, PartialEq, Eq, PartialOrd, Ord)]
     struct Test {
         x: i64,
         y: i64,

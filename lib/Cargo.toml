@@ -1,6 +1,6 @@
 [package]
 name = "deq"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Lukas Krickl <lukas@krickl.dev>"]
 description = "Deq - A simple rust transaction system that allows reverting any changes made to a struct"
 license = "MIT"
