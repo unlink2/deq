@@ -1,5 +1,8 @@
 # Deq
 
+![](https://github.com/unlink2/deq/actions/workflows/build.yml/badge.svg)
+![](https://github.com/unlink2/deq/actions/workflows/test.yml/badge.svg)
+
 A simple transaction system for Rust structs
 
 Deq allows you to easily make atomic transactions on
