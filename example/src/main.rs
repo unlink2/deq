@@ -7,13 +7,18 @@ use deq::*;
 struct Example {
     x: i32,
     y: i32,
-    z: i32
+    z: i32,
 }
 
 fn main() {
     // You will have to initialize transaction data for each struct
     // TODO maybe find an easier solution in the future?
-    let mut t = Example { x: 0, y: 0, z: 0, transaction_data: TransactionData::new() };
+    let mut t = Example {
+        x: 0,
+        y: 0,
+        z: 0,
+        transaction_data: TransactionData::new(),
+    };
 
     // begin a transaction
     t.begin();

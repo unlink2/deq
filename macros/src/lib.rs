@@ -1,10 +1,10 @@
+extern crate deq_core;
+extern crate proc_macro;
 extern crate quote;
 extern crate syn;
-extern crate proc_macro;
-extern crate deq_core;
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, parse::Parser};
+use syn::{parse::Parser, parse_macro_input, DeriveInput};
 
 /// Dervies the transaction code
 #[proc_macro_derive(Transaction)]
@@ -28,21 +28,21 @@ pub fn transaction_fields(_args: TokenStream, input: TokenStream) -> TokenStream
         syn::Data::Struct(ref mut struct_data) => {
             match &mut struct_data.fields {
                 syn::Fields::Named(fields) => {
-                    fields
-                        .named
-                        .push(syn::Field::parse_named.parse2(
-                                quote! { pub transaction_data: TransactionData<Self> }).unwrap());
+                    fields.named.push(
+                        syn::Field::parse_named
+                            .parse2(quote! { pub transaction_data: TransactionData<Self> })
+                            .unwrap(),
+                    );
                 }
-                _ => {
-                    ()
-                }
+                _ => (),
             }
 
             return quote! {
                 #ast
-            }.into();
+            }
+            .into();
         }
-        _ => panic!("`transactions_fields` must be used with structs")
+        _ => panic!("`transactions_fields` must be used with structs"),
     }
 }
 
@@ -78,4 +78,3 @@ fn impl_transaction_macro(ast: &syn::DeriveInput) -> TokenStream {
     };
     gen.into()
 }
-

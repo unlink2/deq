@@ -1,5 +1,5 @@
-use std::fmt;
 use std::cmp::Ordering;
+use std::fmt;
 
 /// Transaction trait
 pub trait Transaction: Clone {
@@ -16,21 +16,21 @@ pub trait Transaction: Clone {
     fn len(&self) -> usize;
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct TransactionData<T> {
-    pub t: Vec<T>
+    pub t: Vec<T>,
 }
 
 impl<T> TransactionData<T> {
     pub fn new() -> Self {
-        Self {
-            t: vec![]
-        }
+        Self { t: vec![] }
     }
 }
 
 impl<T> PartialEq<TransactionData<T>> for TransactionData<T>
-where T: PartialEq<T> {
+where
+    T: PartialEq<T>,
+{
     fn eq(&self, other: &TransactionData<T>) -> bool {
         return self.t == other.t;
     }
@@ -40,18 +40,21 @@ where T: PartialEq<T> {
     }
 }
 
-impl<T> Eq for TransactionData<T>
-where T: Eq {}
+impl<T> Eq for TransactionData<T> where T: Eq {}
 
 impl<T> PartialOrd for TransactionData<T>
-where T: PartialOrd {
+where
+    T: PartialOrd,
+{
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.t.partial_cmp(&other.t)
     }
 }
 
 impl<T> Ord for TransactionData<T>
-where T: Ord {
+where
+    T: Ord,
+{
     fn cmp(&self, other: &Self) -> Ordering {
         self.t.cmp(&other.t)
     }
@@ -60,25 +63,23 @@ where T: Ord {
 /// Transaction Errors
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum TransactionErrorType {
-    TransactionNotStarted
+    TransactionNotStarted,
 }
 
 /// Transaction Error Type
 #[derive(Debug, Copy, Clone)]
 pub struct TransactionError {
-    pub cause: TransactionErrorType
+    pub cause: TransactionErrorType,
 }
 
 impl TransactionError {
     pub fn new(cause: TransactionErrorType) -> Self {
-        Self {
-            cause
-        }
+        Self { cause }
     }
 
     pub fn to_string(&self) -> &str {
         match self.cause {
-            TransactionErrorType::TransactionNotStarted => "Transaction not started"
+            TransactionErrorType::TransactionNotStarted => "Transaction not started",
         }
     }
 }
