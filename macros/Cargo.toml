@@ -1,6 +1,6 @@
 [package]
 name = "deq_macros"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Lukas Krickl <lukas@krickl.dev>"]
 description = "Deq macros"
 license = "MIT"
