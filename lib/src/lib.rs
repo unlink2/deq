@@ -26,13 +26,15 @@ where
 
     /**
      * Commites the changes made
-     * and removes the last item from history
+     * and removes the last item from history.
+     * A commit should commit in FIFO order
      */
     fn commit(&mut self) -> Result<(), TransactionError>;
 
     /**
      * Reverts the changes made and
      * removes the last item fro mhistory
+     * A revert should  revert in LIFO order
      */
     fn revert(&mut self) -> Result<(), TransactionError>;
 
@@ -104,9 +106,11 @@ where
     }
 
     fn commit(&mut self) -> Result<(), TransactionError> {
-        match self.history.pop() {
-            Some(_) => Ok(()),
-            _ => Err(TransactionError::TransactionNotStarted),
+        if self.len() > 0 {
+            self.history.remove(0);
+            Ok(())
+        } else {
+            Err(TransactionError::TransactionNotStarted)
         }
     }
 
@@ -259,6 +263,38 @@ mod tests {
         assert_eq!(t.commit_all(), Ok(()));
 
         assert_eq!(t.get(), &Test::new(200, 300));
+        assert_eq!(t.len(), 0);
+    }
+
+    #[test]
+    fn it_should_revert_and_commit_in_order() {
+        let mut t = Revertable::new(Test::new(100, 100));
+
+        let m1 = t.get_mut();
+        m1.x = 200;
+
+        let m2 = t.get_mut();
+        m2.y = 300;
+
+        let m3 = t.get_mut();
+        m3.x = 50;
+
+        assert_eq!(t.get(), &Test::new(50, 300));
+        assert_eq!(t.len(), 3);
+
+        // m3 is reverted
+        assert_eq!(t.revert(), Ok(()));
+        assert_eq!(t.get(), &Test::new(200, 300));
+        assert_eq!(t.len(), 2);
+
+        // m1 is commited
+        assert_eq!(t.commit(), Ok(()));
+        assert_eq!(t.get(), &Test::new(200, 300));
+        assert_eq!(t.len(), 1);
+
+        // m2 is reverted
+        assert_eq!(t.revert(), Ok(()));
+        assert_eq!(t.get(), &Test::new(200, 100));
         assert_eq!(t.len(), 0);
     }
 

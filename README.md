@@ -19,7 +19,7 @@ and either commit them or revert them.
 Add this to your `Cargo.toml`
 
 ```toml
-deq = "0.1.0"
+deq = "0.2.1"
 ```
 
 To get started see [The Example](example/src/main.rs).
