@@ -1,5 +1,5 @@
 [package]
-name = "example"
+name = "deq example"
 version = "0.1.0"
 authors = ["Lukas Krickl <lukas@krickl.dev>"]
 description = "Deq example"

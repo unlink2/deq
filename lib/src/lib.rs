@@ -1,104 +1,282 @@
-extern crate deq_core;
-extern crate deq_macros;
+pub trait Transaction<T>
+where
+    T: Clone,
+{
+    /**
+     * Returns the current
+     * version of the contained item
+     */
+    fn get(&self) -> &T;
 
-pub use deq_core::*;
-pub use deq_macros::*;
+    /**
+     * Returns a mutable version of the
+     * current item
+     * Obtaining a mutable reference
+     * assumes the state will change
+     * This effectively begins a transaction
+     * should call begin
+     */
+    fn get_mut(&mut self) -> &mut T;
+
+    /**
+     * Begins a new transaction.
+     * Saves the current state to history.
+     */
+    fn begin(&mut self);
+
+    /**
+     * Commites the changes made
+     * and removes the last item from history
+     */
+    fn commit(&mut self) -> Result<(), TransactionError>;
+
+    /**
+     * Reverts the changes made and
+     * removes the last item fro mhistory
+     */
+    fn revert(&mut self) -> Result<(), TransactionError>;
+
+    /**
+     * Accepts all pending changes
+     */
+    fn commit_all(&mut self) -> Result<(), TransactionError>;
+
+    /**
+     * Reverts all pending changes
+     */
+    fn revert_all(&mut self) -> Result<(), TransactionError>;
+
+    /**
+     * Clears histroy
+     */
+    fn clear(&mut self);
+
+    /**
+     * Returns true if a change occured
+     */
+    fn changed(&self) -> bool;
+
+    /**
+     * Returns length of history
+     */
+    fn len(&self) -> usize;
+}
+
+#[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct Revertable<T>
+where
+    T: Clone,
+{
+    current: T,
+
+    #[cfg_attr(feature = "serde_skip_history", serde(skip_serializing))]
+    history: Vec<T>,
+}
+
+impl<T> Revertable<T>
+where
+    T: Clone,
+{
+    pub fn new(current: T) -> Self {
+        Self {
+            current,
+            history: vec![],
+        }
+    }
+}
+
+impl<T> Transaction<T> for Revertable<T>
+where
+    T: Clone,
+{
+    fn get(&self) -> &T {
+        &self.current
+    }
+
+    fn get_mut(&mut self) -> &mut T {
+        self.begin();
+        &mut self.current
+    }
+
+    fn begin(&mut self) {
+        self.history.push(self.current.clone());
+    }
+
+    fn commit(&mut self) -> Result<(), TransactionError> {
+        match self.history.pop() {
+            Some(_) => Ok(()),
+            _ => Err(TransactionError::TransactionNotStarted),
+        }
+    }
+
+    fn revert(&mut self) -> Result<(), TransactionError> {
+        match self.history.pop() {
+            Some(d) => {
+                self.current = d;
+                Ok(())
+            }
+            _ => Err(TransactionError::TransactionNotStarted),
+        }
+    }
+
+    fn commit_all(&mut self) -> Result<(), TransactionError> {
+        if self.len() > 0 {
+            self.clear();
+            Ok(())
+        } else {
+            Err(TransactionError::TransactionNotStarted)
+        }
+    }
+
+    fn revert_all(&mut self) -> Result<(), TransactionError> {
+        if self.len() > 0 {
+            self.current = self.history[0].clone();
+            self.clear();
+            Ok(())
+        } else {
+            Err(TransactionError::TransactionNotStarted)
+        }
+    }
+
+    fn changed(&self) -> bool {
+        self.len() > 0
+    }
+
+    fn clear(&mut self) {
+        self.history.clear();
+    }
+
+    fn len(&self) -> usize {
+        self.history.len()
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
+pub enum TransactionError {
+    TransactionNotStarted,
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[transaction_fields]
-    #[derive(Clone, Transaction, PartialEq, Eq, PartialOrd, Ord)]
+    #[derive(Clone, PartialEq, Eq, Debug)]
     struct Test {
-        x: i64,
-        y: i64,
-        z: i64,
+        pub x: i32,
+        pub y: i32,
+    }
+
+    impl Test {
+        pub fn new(x: i32, y: i32) -> Self {
+            Self { x, y }
+        }
     }
 
     #[test]
-    fn it_should_start_a_transaction() {
-        let mut t = Test {
-            x: 100,
-            y: 200,
-            z: 300,
-            transaction_data: TransactionData::new(),
-        };
-        t.begin();
-        t.x += 20;
-        let _ = t.commit().unwrap();
+    fn it_should_begin_transactions() {
+        let mut t = Revertable::new(Test::new(100, 100));
 
-        assert_eq!(t.x, 120);
-        assert_eq!(t.transaction_data.t.len(), 0);
-    }
-
-    #[test]
-    fn it_should_revert_a_transaction() {
-        let mut t = Test {
-            x: 100,
-            y: 200,
-            z: 300,
-            transaction_data: TransactionData::new(),
-        };
-        t.begin();
-        t.x += 20;
-        let _ = t.revert().unwrap();
-
-        assert_eq!(t.x, 100);
-        assert_eq!(t.transaction_data.t.len(), 0);
+        let m = t.get_mut();
+        m.x = 200;
+        m.y = 300;
+        assert_eq!(m, &Test::new(200, 300));
+        assert_eq!(t.len(), 1);
     }
 
     #[test]
     fn it_should_allow_many_transactions() {
-        let mut t = Test {
-            x: 100,
-            y: 200,
-            z: 300,
-            transaction_data: TransactionData::new(),
-        };
-        t.begin();
-        t.x += 20;
-        t.begin();
-        t.x += 30;
-        t.begin();
-        t.x += 5;
-        let _ = t.revert().unwrap();
-        let _ = t.commit().unwrap();
-        let _ = t.commit().unwrap();
+        let mut t = Revertable::new(Test::new(100, 100));
 
-        assert_eq!(t.x, 150);
+        let m1 = t.get_mut();
+        m1.x = 200;
+
+        let m2 = t.get_mut();
+        m2.y = 300;
+
+        assert_eq!(m2, &Test::new(200, 300));
+        assert_eq!(t.len(), 2);
+    }
+
+    #[test]
+    fn it_should_revert_individual_transactions() {
+        let mut t = Revertable::new(Test::new(100, 100));
+
+        let m1 = t.get_mut();
+        m1.x = 200;
+
+        let m2 = t.get_mut();
+        m2.y = 300;
+
+        assert_eq!(Ok(()), t.revert());
+
+        assert_eq!(t.get(), &Test::new(200, 100));
+        assert_eq!(t.len(), 1);
+    }
+
+    #[test]
+    fn it_should_revert_all_transactions() {
+        let mut t = Revertable::new(Test::new(100, 100));
+
+        let m1 = t.get_mut();
+        m1.x = 200;
+
+        let m2 = t.get_mut();
+        m2.y = 300;
+
+        assert_eq!(Ok(()), t.revert_all());
+
+        assert_eq!(t.get(), &Test::new(100, 100));
         assert_eq!(t.len(), 0);
     }
 
     #[test]
-    #[should_panic]
-    fn it_should_not_revert_if_transaction_was_not_started() {
-        let mut t = Test {
-            x: 100,
-            y: 200,
-            z: 300,
-            transaction_data: TransactionData::new(),
-        };
-        t.x += 20;
-        let _ = t.revert().unwrap();
+    fn it_should_allow_commit_individual_transactions() {
+        let mut t = Revertable::new(Test::new(100, 100));
 
-        assert_eq!(t.x, 100);
+        let m1 = t.get_mut();
+        m1.x = 200;
+
+        let m2 = t.get_mut();
+        m2.y = 300;
+
+        assert_eq!(t.commit(), Ok(()));
+
+        assert_eq!(t.get(), &Test::new(200, 300));
+        assert_eq!(t.len(), 1);
+    }
+
+    #[test]
+    fn it_should_allow_commit_all_transactions() {
+        let mut t = Revertable::new(Test::new(100, 100));
+
+        let m1 = t.get_mut();
+        m1.x = 200;
+
+        let m2 = t.get_mut();
+        m2.y = 300;
+
+        assert_eq!(t.commit_all(), Ok(()));
+
+        assert_eq!(t.get(), &Test::new(200, 300));
         assert_eq!(t.len(), 0);
     }
 
     #[test]
-    #[should_panic]
-    fn it_should_not_commit_if_transaction_was_not_started() {
-        let mut t = Test {
-            x: 100,
-            y: 200,
-            z: 300,
-            transaction_data: TransactionData::new(),
-        };
-        t.x += 20;
-        let _ = t.commit().unwrap();
+    fn commits_should_fail_if_there_are_not_transactions() {
+        let mut t = Revertable::new(Test::new(100, 100));
 
-        assert_eq!(t.x, 100);
+        assert_eq!(t.commit(), Err(TransactionError::TransactionNotStarted));
+        assert_eq!(t.commit_all(), Err(TransactionError::TransactionNotStarted));
+        assert_eq!(t.len(), 0);
+    }
+
+    #[test]
+    fn reverts_should_fail_if_there_are_not_transactions() {
+        let mut t = Revertable::new(Test::new(100, 100));
+
+        assert_eq!(t.revert(), Err(TransactionError::TransactionNotStarted));
+        assert_eq!(t.revert_all(), Err(TransactionError::TransactionNotStarted));
         assert_eq!(t.len(), 0);
     }
 }

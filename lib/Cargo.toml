@@ -1,6 +1,6 @@
 [package]
 name = "deq"
-version = "0.1.5"
+version = "0.2.0"
 authors = ["Lukas Krickl <lukas@krickl.dev>"]
 description = "Deq - A simple rust transaction system that allows reverting any changes made to a struct"
 license = "MIT"
@@ -12,5 +12,7 @@ name = "deq"
 path = "src/lib.rs"
 
 [dependencies]
-deq_macros = {path = "../macros", version = "0.1.5"}
-deq_core = {path = "../core", version = "0.1.5"}
+serde = { version = "1.0", features = ["derive"], optional = true}
+
+[features]
+serde_skip_history=["serde"]

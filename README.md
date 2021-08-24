@@ -3,10 +3,9 @@
 ![](https://github.com/unlink2/deq/actions/workflows/build.yml/badge.svg)
 ![](https://github.com/unlink2/deq/actions/workflows/test.yml/badge.svg)
 
-A simple transaction system for Rust structs
-
-Deq allows you to easily make atomic transactions on
-structs and either revert them or commit them for good.
+A simple container for revertable struct operations.
+Deq allows you to easily make atomic changes to structs
+and either commit them or revert them.
 
 ## Table of Contents
 

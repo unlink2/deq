@@ -1,55 +1,51 @@
 extern crate deq;
 
 use deq::*;
+use std::fmt;
 
-#[transaction_fields]
-#[derive(Clone, Transaction)]
-struct Example {
-    x: i32,
-    y: i32,
-    z: i32,
+#[derive(Clone, PartialEq, Eq, Debug)]
+struct Point {
+    pub x: i32,
+    pub y: i32,
+}
+
+impl Point {
+    pub fn new(x: i32, y: i32) -> Self {
+        Self { x, y }
+    }
+}
+
+impl fmt::Display for Point {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+    }
 }
 
 fn main() {
-    // You will have to initialize transaction data for each struct
-    // TODO maybe find an easier solution in the future?
-    let mut t = Example {
-        x: 0,
-        y: 0,
-        z: 0,
-        transaction_data: TransactionData::new(),
-    };
+    // Sample transaction
+    let mut container = Revertable::new(Point::new(50, 60));
+    println!("{}", container.get());
+    println!("History: {}", container.len());
 
     // begin a transaction
-    t.begin();
-    t.x += 100;
+    container.get_mut().x = 70;
+    println!("{}", container.get());
+    println!("History: {}", container.len());
 
-    // this will return an error if
-    // no transaction was started
-    let _ = t.commit();
+    // revert a transaction. This fails with an error
+    // if there is no history
+    container.revert().unwrap();
+    println!("{}", container.get());
+    println!("History: {}", container.len());
 
-    println!("X is {}", t.x);
+    // being transaction
+    container.get_mut().y = 40;
+    println!("{}", container.get());
+    println!("History: {}", container.len());
 
-    // transactions can be fully reverted
-    t.begin();
-    t.x += 50;
-
-    // also returns an error if there are no open transactions
-    let _ = t.revert();
-    println!("X is {}", t.x);
-
-    // there can be more than one running transaction
-    t.begin();
-    t.x += 10;
-    t.begin();
-    t.x += 20;
-    println!("Open transactions {}", t.len());
-
-    println!("X is {}", t.x);
-    // revert  one
-    let _ = t.revert();
-
-    // commit the other
-    let _ = t.commit();
-    println!("X is {}", t.x);
+    // commit a transaction. This fails with an error
+    // if there is no history
+    container.commit().unwrap();
+    println!("{}", container.get());
+    println!("History: {}", container.len());
 }
