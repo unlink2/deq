@@ -1,3 +1,17 @@
+//! # Deq
+//!
+//! This crate allows the creation of a stack-baed
+//! history for any object. It achives this using a container that
+//! tracks access to mutable references and clones the underlying object
+//! whenever such a reference is achived.
+//!
+//! # Features
+//!
+//! The crate supports the following features:
+//!
+//! - serde: Enable serde support
+//! - serde_skip_history: Enable serde support but do not seralize the revision history
+
 pub trait Transaction<T>
 where
     T: Clone,
